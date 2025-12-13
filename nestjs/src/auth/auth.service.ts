@@ -5,6 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { User } from '@prisma/client';
 
+/**
+ * Servicio de autenticación.
+ * @param usersService - Servicio de usuarios.
+ * @param jwtService - Servicio de JWT.
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -12,6 +17,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Valida el usuario.
+   * @param email - Correo electrónico del usuario.
+   * @param pass - Contraseña del usuario.
+   * @returns El usuario autenticado.
+   */
   async validateUser(
     email: string,
     pass: string,
@@ -25,6 +36,11 @@ export class AuthService {
     return null;
   }
 
+  /**
+   * Genera un token de acceso y un token de refresco.
+   * @param user - Usuario autenticado.
+   * @returns Un objeto con el token de acceso y el token de refresco.
+   */
   login(user: Omit<User, 'password'>) {
     const payload = { email: user.email, sub: user.id, role: user.role };
     return {
@@ -33,6 +49,11 @@ export class AuthService {
     };
   }
 
+  /**
+   * Registra un nuevo usuario.
+   * @param createUserDto - DTO con los datos del usuario a registrar.
+   * @returns El usuario registrado.
+   */
   async register(createUserDto: CreateUserDto) {
     if (!createUserDto.password) {
       throw new Error('Password is required for registration');
@@ -47,6 +68,11 @@ export class AuthService {
     return result;
   }
 
+  /**
+   * Autentica un usuario con Google.
+   * @param req - Petición con el usuario autenticado.
+   * @returns El usuario autenticado.
+   */
   googleLogin(req: { user: any }) {
     if (!req.user) {
       return 'No user from google';

@@ -4,6 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
 
+/**
+ * Estrategia de autenticación JWT para verificar tokens de acceso.
+ * @param configService - Servicio de configuración.
+ * @param usersService - Servicio de usuarios.
+ */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -17,6 +22,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  /**
+   * Valida el token de autenticación.
+   * @param payload - Payload del token.
+   * @returns El usuario autenticado.
+   */
   async validate(payload: { sub: string; email: string }) {
     const user = await this.usersService.findOne(payload.sub);
     return user;

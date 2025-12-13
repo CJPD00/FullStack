@@ -3,6 +3,10 @@ import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+/**
+ * Estrategia de autenticación Google para verificar tokens de acceso.
+ * @param configService - Servicio de configuración.
+ */
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private configService: ConfigService) {
@@ -14,6 +18,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
+  /**
+   * Valida el token de autenticación.
+   * @param accessToken - Token de acceso.
+   * @param refreshToken - Token de refresco.
+   * @param profile - Perfil del usuario.
+   * @param done - Callback de autenticación.
+   * @returns El usuario autenticado.
+   */
   validate(
     accessToken: string,
     refreshToken: string,
