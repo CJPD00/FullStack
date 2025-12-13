@@ -1,9 +1,11 @@
 
-POST http://localhost:3000/users HTTP/1.1
+POST http://localhost:3000/api/v1/users HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJzdWIiOiI2NmQ5NjdmOC1iMWFiLTQ2MDYtOTk0My05MTNjZGE5YWIyYTUiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NjU2NTIwMTksImV4cCI6MTc2NTY1MjkxOX0.ZbLnc5u4ljAVwL1HNLTs7EbFtUGfpoJdvwicPMD-XSI
 Content-Type: application/json
 
 {
-  "username": "nuevoUsuario",
-  "email": "nuevo.usuario@example.com",
-  "password": "miContraseñaSegura123"
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe",
+  "role": "STUDENT"
 }
