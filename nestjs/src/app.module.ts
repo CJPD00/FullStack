@@ -10,6 +10,12 @@ import { LessonsModule } from './lessons/lessons.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 
+/**
+ * Módulo principal de la aplicación.
+ * @param imports - Módulos importados.
+ * @param controllers - Controladores de la aplicación.
+ * @param providers - Proveedores de la aplicación.
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({
