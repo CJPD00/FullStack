@@ -10,8 +10,9 @@ import {
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
 /**
  * Controlador de autenticación.
@@ -48,6 +49,7 @@ export class AuthController {
    */
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({ type: CreateUserDto })
   async register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
@@ -69,5 +71,17 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: { user: any }) {
     return this.authService.googleLogin(req);
+  }
+
+  /**
+   * Refresca el access token usando un refresh token válido.
+   * @param refreshTokenDto - DTO con el refresh token.
+   * @returns Un nuevo access token.
+   */
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiBody({ type: RefreshTokenDto })
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto.refresh_token);
   }
 }

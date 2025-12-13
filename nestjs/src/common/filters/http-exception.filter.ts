@@ -32,9 +32,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
+    // Log detallado del error
     this.logger.error(
       `Http Status: ${status} Error Message: ${JSON.stringify(message)}`,
     );
+
+    // En desarrollo, mostrar el stack trace completo
+    if (exception instanceof Error) {
+      this.logger.error(`Stack trace: ${exception.stack}`);
+      this.logger.error(`Error name: ${exception.name}`);
+      this.logger.error(`Error message: ${exception.message}`);
+    }
 
     response.status(status).json({
       statusCode: status,

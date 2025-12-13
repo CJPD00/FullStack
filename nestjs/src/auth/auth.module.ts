@@ -25,7 +25,17 @@ import { GoogleStrategy } from './strategies/google.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    {
+      provide: GoogleStrategy,
+      useFactory: (configService: ConfigService, authService: AuthService) => {
+        return new GoogleStrategy(configService, authService);
+      },
+      inject: [ConfigService, AuthService],
+    },
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
