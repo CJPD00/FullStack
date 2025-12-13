@@ -4,6 +4,11 @@ import { Role } from '@prisma/client';
 import type { User } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
+/**
+ * Guardia de roles para verificar permisos de usuario.
+ * @param context - Contexto de ejecución.
+ * @returns Booleano indicando si el usuario tiene los roles permitidos.
+ */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}

@@ -8,6 +8,11 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+/**
+ * Filtro de excepción para manejar errores HTTP.
+ * @param exception - Excepción a manejar.
+ * @param host - Host de la excepción.
+ */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);

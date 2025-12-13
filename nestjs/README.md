@@ -12,27 +12,27 @@ Bienvenido al curso avanzado de NestJS. Este proyecto simula una plataforma de g
 
 ### Instalación
 
-1.  **Clonar el repositorio**
+1. **Clonar el repositorio**
 
     ```bash
     git clone <repo-url>
     cd nestjs-lms
     ```
 
-2.  **Instalar dependencias**
+2. **Instalar dependencias**
 
     ```bash
     pnpm install
     ```
 
-3.  **Configurar entorno**
+3. **Configurar entorno**
     Copia el archivo de ejemplo y configúralo (por defecto usa SQLite para desarrollo):
 
     ```bash
     cp .env.example .env
     ```
 
-4.  **Base de Datos**
+4. **Base de Datos**
     Ejecuta las migraciones y el seed de datos:
 
     ```bash
@@ -40,10 +40,12 @@ Bienvenido al curso avanzado de NestJS. Este proyecto simula una plataforma de g
     pnpm prisma db seed
     ```
 
-5.  **Iniciar el servidor**
+5. **Iniciar el servidor**
+
     ```bash
     pnpm start:dev
     ```
+
     El servidor correrá en `http://localhost:3000/api/v1`.
 
 ### 📚 Documentación API
