@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,14 +26,34 @@ export class CoursesService {
     });
   }
 
-  update(id: string, updateCourseDto: UpdateCourseDto) {
+  async update(id: string, updateCourseDto: UpdateCourseDto, userId: string) {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+
+    if (!course || course.instructorId !== userId) {
+      throw new UnauthorizedException({
+        message: 'No tienes permiso para actualizar este curso.',
+        error: 'Unauthorized',
+        statusCode: 403,
+      });
+    }
+
     return this.prisma.course.update({
       where: { id },
       data: updateCourseDto,
     });
   }
 
-  remove(id: string) {
+  async remove(id: string, userId: string) {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+
+    if (!course || course.instructorId !== userId) {
+      throw new UnauthorizedException({
+        message: 'No tienes permiso para eliminar este curso.',
+        error: 'Unauthorized',
+        statusCode: 403,
+      });
+    }
+
     return this.prisma.course.delete({
       where: { id },
     });

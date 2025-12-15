@@ -14,7 +14,9 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
+import type { User } from '@prisma/client';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('courses')
@@ -43,14 +45,18 @@ export class CoursesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-    return this.coursesService.update(id, updateCourseDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.coursesService.update(id, updateCourseDto, user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.coursesService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.coursesService.remove(id, user.id);
   }
 }

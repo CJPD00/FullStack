@@ -6,10 +6,10 @@
 # test output
 /coverage
 
-#BD
+# BD
 .DS_Store
 npm-debug.log
-/prisma
+prisma/dev.db
 
 
 # Logs
