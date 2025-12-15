@@ -15,7 +15,9 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import type { User } from '@prisma/client';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('lessons')
 @ApiBearerAuth()
@@ -26,13 +28,13 @@ export class LessonsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  create(@Body() createLessonDto: CreateLessonDto) {
-    return this.lessonsService.create(createLessonDto);
+  create(@Body() createLessonDto: CreateLessonDto, @CurrentUser() user: User) {
+    return this.lessonsService.create(createLessonDto, user);
   }
 
-  @Get()
-  findAll() {
-    return this.lessonsService.findAll();
+  @Get(':courseId')
+  findByCourseId(@Param('courseId') courseId: string) {
+    return this.lessonsService.findByCourseId(courseId);
   }
 
   @Get(':id')
@@ -43,14 +45,18 @@ export class LessonsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-    return this.lessonsService.update(id, updateLessonDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateLessonDto: UpdateLessonDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.lessonsService.update(id, updateLessonDto, user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.lessonsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.lessonsService.remove(id, user);
   }
 }
