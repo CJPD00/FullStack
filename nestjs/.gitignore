@@ -3,6 +3,15 @@
 /node_modules
 /build
 
+# test output
+/coverage
+
+#BD
+.DS_Store
+npm-debug.log
+/prisma
+
+
 # Logs
 logs
 *.log

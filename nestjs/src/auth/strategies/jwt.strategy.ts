@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { Logger } from '@nestjs/common';
 
 /**
  * Estrategia de autenticación JWT para verificar tokens de acceso.
@@ -11,6 +12,8 @@ import { UsersService } from '../../users/users.service';
  */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private readonly logger = new Logger(JwtStrategy.name);
+
   constructor(
     private configService: ConfigService,
     private usersService: UsersService,
@@ -21,10 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
       passReqToCallback: false,
     });
-    console.log(
-      '[JWT Strategy] Initialized with secret:',
-      configService.getOrThrow<string>('JWT_SECRET'),
-    );
+    this.logger.log('[JWT Strategy] Initialized with secret');
   }
 
   /**
@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findOne(payload.sub);
 
     if (!user) {
-      console.error('[JWT Strategy] User not found:', payload.sub);
+      this.logger.error('[JWT Strategy] User not found:', payload.sub);
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
