@@ -36,6 +36,9 @@ export class LessonsController {
   }
 
   @Get()
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all lessons' })
   findAll(
     @Query() paginationDto: PaginationDto,
@@ -43,6 +46,18 @@ export class LessonsController {
   ) {
     return this.lessonsService.findAll(paginationDto, courseId);
   }
+
+  // @Get('by-course/:courseId')
+  // @ApiOperation({ summary: 'Obtener lecciones por ID de curso' })
+  // @ApiBearerAuth('JWT-auth')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(Role.INSTRUCTOR, Role.ADMIN)
+  // findLessonsByCourseId(
+  //   @Param('courseId') courseId: string,
+  //   @Query() paginationDto: PaginationDto,
+  // ) {
+  //   return this.lessonsService.findAll(paginationDto, courseId);
+  // }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a lesson by id' })
