@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -18,6 +19,7 @@ import { Role } from '@prisma/client';
 import type { User } from '@prisma/client';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('lessons')
 @ApiBearerAuth()
@@ -32,9 +34,12 @@ export class LessonsController {
     return this.lessonsService.create(createLessonDto, user);
   }
 
-  @Get(':courseId')
-  findByCourseId(@Param('courseId') courseId: string) {
-    return this.lessonsService.findByCourseId(courseId);
+  @Get()
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query('courseId') courseId?: string,
+  ) {
+    return this.lessonsService.findAll(paginationDto, courseId);
   }
 
   @Get(':id')

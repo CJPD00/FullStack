@@ -11,5 +11,5 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:3000/api/v1/courses?page=5&limit=5 HTTP/1.1
+GET http://localhost:3000/api/v1/lessons HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0dWRlbnRAZXhhbXBsZS5jb20iLCJzdWIiOiI3NGNlNTkxYy03ZGY1LTQ5MDItYWEzZi01ZWJkYjliMDI5OTEiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc2NTkwMTM0MywiZXhwIjoxNzY1OTAyMjQzfQ.fMM4PklUkDSHfzVNibevtVhzgcnBFwv-DISzji64k-M

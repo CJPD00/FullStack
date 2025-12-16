@@ -7,6 +7,7 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Course, Lesson, User } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class LessonsService {
@@ -29,17 +30,30 @@ export class LessonsService {
     });
   }
 
-  // findAll() {
-  //   return this.prisma.lesson.findMany({
-  //     include: { course: true },
-  //   });
-  // }
+  async findAll(paginationDto: PaginationDto, courseId?: string) {
+    const { limit, page } = paginationDto;
+    const skip = (page - 1) * limit;
 
-  findByCourseId(courseId: string) {
-    return this.prisma.lesson.findMany({
+    const lessons = await this.prisma.lesson.findMany({
       where: { courseId },
       include: { course: true },
+      skip,
+      take: limit,
     });
+
+    const total = await this.prisma.lesson.count({
+      where: { courseId },
+    });
+
+    return {
+      data: lessons,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   findOne(id: string) {
