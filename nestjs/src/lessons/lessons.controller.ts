@@ -17,17 +17,18 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import type { User } from '@prisma/client';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('lessons')
-@ApiBearerAuth()
 @Controller('lessons')
 export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new lesson' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   create(@Body() createLessonDto: CreateLessonDto, @CurrentUser() user: User) {
@@ -35,6 +36,7 @@ export class LessonsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all lessons' })
   findAll(
     @Query() paginationDto: PaginationDto,
     @Query('courseId') courseId?: string,
@@ -43,11 +45,14 @@ export class LessonsController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a lesson by id' })
   findOne(@Param('id') id: string) {
     return this.lessonsService.findOne(id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a lesson by id' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   update(
@@ -59,6 +64,8 @@ export class LessonsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a lesson by id' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: User) {

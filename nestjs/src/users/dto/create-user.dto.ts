@@ -12,6 +12,7 @@ export class CreateUserDto {
   @ApiProperty({
     example: 'user@example.com',
     description: 'Email del usuario',
+    required: true,
   })
   @IsEmail()
   email: string;

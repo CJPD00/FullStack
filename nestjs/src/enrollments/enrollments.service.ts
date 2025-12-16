@@ -25,6 +25,13 @@ export class EnrollmentsService {
   findByUser(userId: string) {
     return this.prisma.enrollment.findMany({
       where: { userId },
+      omit: {
+        userId: true,
+        courseId: true,
+        updatedAt: true,
+        createdAt: true,
+        id: true,
+      },
       include: { course: true },
     });
   }
