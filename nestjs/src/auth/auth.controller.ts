@@ -59,6 +59,7 @@ export class AuthController {
    * @returns El usuario autenticado.
    */
   @Get('google')
+  @ApiOperation({ summary: 'Login with Google' })
   @UseGuards(AuthGuard('google'))
   async googleAuth() {}
 
@@ -68,6 +69,7 @@ export class AuthController {
    * @returns El usuario autenticado.
    */
   @Get('google/callback')
+  @ApiOperation({ summary: 'Login with Google callback' })
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: { user: any }) {
     return this.authService.googleLogin(req);
