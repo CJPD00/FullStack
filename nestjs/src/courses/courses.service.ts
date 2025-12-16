@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class CoursesService {
@@ -13,10 +14,26 @@ export class CoursesService {
     });
   }
 
-  findAll() {
-    return this.prisma.course.findMany({
-      include: { instructor: true },
+  async findAll({ limit, page }: PaginationDto) {
+    const skip = (page - 1) * limit;
+    const courses = await this.prisma.course.findMany({
+      skip,
+      take: limit,
+      include: {
+        instructor: {
+          omit: { password: true },
+        },
+      },
     });
+    const total = await this.prisma.course.count();
+    return {
+      data: courses,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
   findOne(id: string) {
