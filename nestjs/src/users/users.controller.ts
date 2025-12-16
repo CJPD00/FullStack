@@ -19,16 +19,17 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import type { User } from '@prisma/client';
 
 @ApiTags('users')
-@ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new User' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async create(@Body() createUserDto: CreateUserDto) {
@@ -40,6 +41,8 @@ export class UsersController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Find all users' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   findAll(@Query() paginationDto: PaginationDto) {
@@ -47,12 +50,16 @@ export class UsersController {
   }
 
   @Get('me')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
   getProfile(@CurrentUser() user: User) {
     return this.usersService.findOne(user.id);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get user by id' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   findOne(@Param('id') id: string) {
@@ -60,6 +67,8 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -67,6 +76,8 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Remove a user' })
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
