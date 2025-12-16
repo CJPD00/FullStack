@@ -9,3 +9,7 @@ Content-Type: application/json
   "name": "John Doe",
   "role": "STUDENT"
 }
+
+###
+GET http://localhost:3000/api/v1/users?page=1&limit=2 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwic3ViIjoiMDQ4NDZhZDMtYWVhYi00NmEyLThlMDEtYjlkMDY4MWZmNmU2Iiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzY1ODcxODA0LCJleHAiOjE3NjU4NzI3MDR9.n2Jw2bD1RbAwG0is_dBd2jEuc7dU6l3e4prsWWhWGj0
