@@ -57,7 +57,7 @@ export class CoursesController {
     @Body() updateCourseDto: UpdateCourseDto,
     @CurrentUser() user: User,
   ) {
-    return this.coursesService.update(id, updateCourseDto, user.id);
+    return this.coursesService.update(id, updateCourseDto, user.id, user.role);
   }
 
   @Delete(':id')
@@ -66,6 +66,6 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.coursesService.remove(id, user.id);
+    return this.coursesService.remove(id, user.id, user.role);
   }
 }

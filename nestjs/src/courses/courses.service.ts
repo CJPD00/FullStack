@@ -3,6 +3,7 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
@@ -43,15 +44,22 @@ export class CoursesService {
     });
   }
 
-  async update(id: string, updateCourseDto: UpdateCourseDto, userId: string) {
+  async update(
+    id: string,
+    updateCourseDto: UpdateCourseDto,
+    userId: string,
+    role: Role,
+  ) {
     const course = await this.prisma.course.findUnique({ where: { id } });
 
-    if (!course || course.instructorId !== userId) {
-      throw new UnauthorizedException({
-        message: 'No tienes permiso para actualizar este curso.',
-        error: 'Unauthorized',
-        statusCode: 403,
-      });
+    if (role !== Role.ADMIN) {
+      if (!course || course.instructorId !== userId) {
+        throw new UnauthorizedException({
+          message: 'No tienes permiso para actualizar este curso.',
+          error: 'Unauthorized',
+          statusCode: 403,
+        });
+      }
     }
 
     return this.prisma.course.update({
@@ -60,15 +68,17 @@ export class CoursesService {
     });
   }
 
-  async remove(id: string, userId: string) {
+  async remove(id: string, userId: string, role: Role) {
     const course = await this.prisma.course.findUnique({ where: { id } });
 
-    if (!course || course.instructorId !== userId) {
-      throw new UnauthorizedException({
-        message: 'No tienes permiso para eliminar este curso.',
-        error: 'Unauthorized',
-        statusCode: 403,
-      });
+    if (role !== Role.ADMIN) {
+      if (!course || course.instructorId !== userId) {
+        throw new UnauthorizedException({
+          message: 'No tienes permiso para eliminar este curso.',
+          error: 'Unauthorized',
+          statusCode: 403,
+        });
+      }
     }
 
     return this.prisma.course.delete({
