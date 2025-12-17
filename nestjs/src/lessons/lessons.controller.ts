@@ -39,9 +39,9 @@ export class LessonsController {
   @ApiOperation({ summary: 'Get all lessons' })
   findAll(
     @Query() paginationDto: PaginationDto,
-    @Query('courseId') courseId?: string,
+    @Query() query: { courseId?: string },
   ) {
-    return this.lessonsService.findAll(paginationDto, courseId);
+    return this.lessonsService.findAll(paginationDto, query.courseId);
   }
 
   @Get(':id')

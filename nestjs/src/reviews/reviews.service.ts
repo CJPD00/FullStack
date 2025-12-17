@@ -21,8 +21,17 @@ export class ReviewsService {
       throw new NotFoundException('Course not found');
     }
 
-    // Optional: Check if user is enrolled?
-    // For now, we allow any user to review (or we can restrict to enrolled users later)
+    //Check if user is enrolled?
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: createReviewDto.courseId },
+      },
+    });
+    if (!enrollment) {
+      throw new ForbiddenException(
+        'You must be enrolled in the course to review it',
+      );
+    }
 
     return this.prisma.review.create({
       data: {
@@ -32,7 +41,14 @@ export class ReviewsService {
     });
   }
 
-  findAll() {
+  findAll(courseId?: string) {
+    if (courseId) {
+      return this.prisma.review.findMany({
+        where: { courseId },
+        include: { user: true, course: true },
+      });
+    }
+
     return this.prisma.review.findMany({
       include: { user: true, course: true },
     });
