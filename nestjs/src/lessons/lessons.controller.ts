@@ -32,13 +32,10 @@ export class LessonsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   create(@Body() createLessonDto: CreateLessonDto, @CurrentUser() user: User) {
-    return this.lessonsService.create(createLessonDto, user);
+    return this.lessonsService.create(user.id, user.role, createLessonDto);
   }
 
   @Get()
-  @ApiBearerAuth('JWT-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all lessons' })
   findAll(
     @Query() paginationDto: PaginationDto,
@@ -46,18 +43,6 @@ export class LessonsController {
   ) {
     return this.lessonsService.findAll(paginationDto, courseId);
   }
-
-  // @Get('by-course/:courseId')
-  // @ApiOperation({ summary: 'Obtener lecciones por ID de curso' })
-  // @ApiBearerAuth('JWT-auth')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  // findLessonsByCourseId(
-  //   @Param('courseId') courseId: string,
-  //   @Query() paginationDto: PaginationDto,
-  // ) {
-  //   return this.lessonsService.findAll(paginationDto, courseId);
-  // }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a lesson by id' })
@@ -75,7 +60,7 @@ export class LessonsController {
     @Body() updateLessonDto: UpdateLessonDto,
     @CurrentUser() user: User,
   ) {
-    return this.lessonsService.update(id, updateLessonDto, user);
+    return this.lessonsService.update(id, user.id, user.role, updateLessonDto);
   }
 
   @Delete(':id')
@@ -84,6 +69,6 @@ export class LessonsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.lessonsService.remove(id, user);
+    return this.lessonsService.remove(id, user.id, user.role);
   }
 }

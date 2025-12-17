@@ -9,6 +9,7 @@ import { CoursesModule } from './courses/courses.module';
 import { LessonsModule } from './lessons/lessons.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { validationSchema } from './config/env.validation';
 
 /**
@@ -33,6 +34,7 @@ import { validationSchema } from './config/env.validation';
     LessonsModule,
     EnrollmentsModule,
     NotificationsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

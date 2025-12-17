@@ -1,28 +1,38 @@
 import {
   Injectable,
+  ForbiddenException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Course, Lesson, User } from '@prisma/client';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Role } from '@prisma/client';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class LessonsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createLessonDto: CreateLessonDto, user: User) {
-    const course: Course | null = await this.prisma.course.findUnique({
-      where: { id: createLessonDto.courseId },
-    });
-
-    if (!course || course.instructorId !== user.id) {
-      throw new UnauthorizedException({
-        message: 'You are not authorized to create a lesson for this course',
-        code: 401,
+  async create(
+    userId: string,
+    userRole: Role,
+    createLessonDto: CreateLessonDto,
+  ) {
+    // If not admin, check if course belongs to instructor
+    if (userRole !== Role.ADMIN) {
+      const course = await this.prisma.course.findUnique({
+        where: { id: createLessonDto.courseId },
       });
+
+      if (!course) {
+        throw new NotFoundException('Course not found');
+      }
+
+      if (course.instructorId !== userId) {
+        throw new ForbiddenException(
+          'You can only add lessons to your own courses',
+        );
+      }
     }
 
     return this.prisma.lesson.create({
@@ -63,27 +73,24 @@ export class LessonsService {
     });
   }
 
-  async update(id: string, updateLessonDto: UpdateLessonDto, user: User) {
-    const lesson: Lesson | null = await this.prisma.lesson.findUnique({
-      where: { id },
-    });
+  async update(
+    id: string,
+    userId: string,
+    userRole: Role,
+    updateLessonDto: UpdateLessonDto,
+  ) {
+    // If not admin, check ownership
+    if (userRole !== Role.ADMIN) {
+      const lesson = await this.findOne(id);
+      if (!lesson) {
+        throw new NotFoundException('Lesson not found');
+      }
 
-    if (!lesson) {
-      throw new NotFoundException({
-        message: 'Lesson not found',
-        code: 404,
-      });
-    }
-
-    const course: Course | null = await this.prisma.course.findUnique({
-      where: { id: lesson?.courseId },
-    });
-
-    if (!course || course.instructorId !== user.id) {
-      throw new UnauthorizedException({
-        message: 'You are not authorized to update a lesson for this course',
-        code: 401,
-      });
+      if (lesson.course.instructorId !== userId) {
+        throw new ForbiddenException(
+          'You can only update lessons of your own courses',
+        );
+      }
     }
 
     return this.prisma.lesson.update({
@@ -92,27 +99,19 @@ export class LessonsService {
     });
   }
 
-  async remove(id: string, user: User) {
-    const lesson: Lesson | null = await this.prisma.lesson.findUnique({
-      where: { id },
-    });
+  async remove(id: string, userId: string, userRole: Role) {
+    // If not admin, check ownership
+    if (userRole !== Role.ADMIN) {
+      const lesson = await this.findOne(id);
+      if (!lesson) {
+        throw new NotFoundException('Lesson not found');
+      }
 
-    if (!lesson) {
-      throw new NotFoundException({
-        message: 'Lesson not found',
-        code: 404,
-      });
-    }
-
-    const course: Course | null = await this.prisma.course.findUnique({
-      where: { id: lesson?.courseId },
-    });
-
-    if (!course || course.instructorId !== user.id) {
-      throw new UnauthorizedException({
-        message: 'You are not authorized to delete a lesson for this course',
-        code: 401,
-      });
+      if (lesson.course.instructorId !== userId) {
+        throw new ForbiddenException(
+          'You can only delete lessons of your own courses',
+        );
+      }
     }
 
     return this.prisma.lesson.delete({
