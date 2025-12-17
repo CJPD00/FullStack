@@ -7,7 +7,7 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { FindAllLessonsDto } from './dto/find-all-lesson.dto';
 
 @Injectable()
 export class LessonsService {
@@ -40,7 +40,7 @@ export class LessonsService {
     });
   }
 
-  async findAll(paginationDto: PaginationDto, courseId?: string) {
+  async findAll(paginationDto: FindAllLessonsDto, courseId?: string) {
     const { limit, page } = paginationDto;
     const skip = (page - 1) * limit;
 

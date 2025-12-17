@@ -19,7 +19,7 @@ import { Role } from '@prisma/client';
 import type { User } from '@prisma/client';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { FindAllLessonsDto } from './dto/find-all-lesson.dto';
 
 @ApiTags('lessons')
 @Controller('lessons')
@@ -37,11 +37,11 @@ export class LessonsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all lessons' })
-  findAll(
-    @Query() paginationDto: PaginationDto,
-    @Query() query: { courseId?: string },
-  ) {
-    return this.lessonsService.findAll(paginationDto, query.courseId);
+  findAll(@Query() findAllLessonsDto: FindAllLessonsDto) {
+    return this.lessonsService.findAll(
+      findAllLessonsDto,
+      findAllLessonsDto.courseId,
+    );
   }
 
   @Get(':id')
