@@ -8,11 +8,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
+import { RegisterDto } from './dto/register.dto';
 
 /**
  * Controlador de autenticación.
@@ -49,9 +49,9 @@ export class AuthController {
    */
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiBody({ type: CreateUserDto })
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  @ApiBody({ type: RegisterDto })
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   /**

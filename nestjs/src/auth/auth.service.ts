@@ -1,10 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from '../users/dto/create-user.dto';
 import { User } from '@prisma/client';
+import { RegisterDto } from './dto/register.dto';
 
 /**
  * Servicio de autenticación.
@@ -59,21 +63,19 @@ export class AuthService {
    * @param createUserDto - DTO con los datos del usuario a registrar.
    * @returns El usuario registrado.
    */
-  async register(createUserDto: CreateUserDto) {
+  async register(registerDto: RegisterDto) {
     // Check if user already exists
-    const existingUser = await this.usersService.findByEmail(
-      createUserDto.email,
-    );
+    const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
-      throw new UnauthorizedException('El usuario ya existe');
+      throw new ConflictException('The user is already exist');
     }
 
-    if (!createUserDto.password) {
+    if (!registerDto.password) {
       throw new Error('Password is required for registration');
     }
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const user = await this.usersService.create({
-      ...createUserDto,
+      ...registerDto,
       password: hashedPassword,
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
