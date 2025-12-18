@@ -17,23 +17,25 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import type { User } from '@prisma/client';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('notifications')
-@ApiBearerAuth()
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
+  @ApiBody({ type: CreateNotificationDto })
   create(@Body() createNotificationDto: CreateNotificationDto) {
     return this.notificationsService.create(createNotificationDto);
   }
 
   @Get()
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   findAll() {
@@ -51,6 +53,10 @@ export class NotificationsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBody({ type: UpdateNotificationDto })
   update(
     @Param('id') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
@@ -59,6 +65,7 @@ export class NotificationsController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
