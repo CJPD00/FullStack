@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -32,11 +31,21 @@ export class NotificationsService {
       include: { user: true },
     });
   }
-
-  update(id: string, updateNotificationDto: UpdateNotificationDto) {
+  markAsRead(id: string, userId: string) {
     return this.prisma.notification.update({
-      where: { id },
-      data: updateNotificationDto,
+      where: { id, userId, readAt: null },
+      data: {
+        readAt: new Date(),
+      },
+    });
+  }
+
+  markAllAsRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, readAt: null },
+      data: {
+        readAt: new Date(),
+      },
     });
   }
 
