@@ -8,10 +8,14 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import { FindAllLessonsDto } from './dto/find-all-lesson.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class LessonsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(
     userId: string,
@@ -93,10 +97,18 @@ export class LessonsService {
       }
     }
 
-    return this.prisma.lesson.update({
+    const updatedLesson = await this.prisma.lesson.update({
       where: { id },
       data: updateLessonDto,
     });
+
+    // Notify subscribers
+    await this.notificationsService.notifyLessonUpdate(
+      id,
+      `La lección "${updatedLesson.title}" ha sido actualizada.`,
+    );
+
+    return updatedLesson;
   }
 
   async remove(id: string, userId: string, userRole: Role) {

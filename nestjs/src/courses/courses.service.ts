@@ -4,10 +4,14 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { Role } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CoursesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   create(createCourseDto: CreateCourseDto) {
     return this.prisma.course.create({
@@ -62,10 +66,18 @@ export class CoursesService {
       }
     }
 
-    return this.prisma.course.update({
+    const updatedCourse = await this.prisma.course.update({
       where: { id },
       data: updateCourseDto,
     });
+
+    // Notify subscribers
+    await this.notificationsService.notifyCourseSubscribers(
+      id,
+      `El curso "${updatedCourse.title}" ha sido actualizado.`,
+    );
+
+    return updatedCourse;
   }
 
   async remove(id: string, userId: string, role: Role) {
