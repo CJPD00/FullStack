@@ -10,6 +10,7 @@ import { LessonsModule } from './lessons/lessons.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { MailModule } from './mail/mail.module';
 import { validationSchema } from './config/env.validation';
 
 /**
@@ -35,6 +36,7 @@ import { validationSchema } from './config/env.validation';
     EnrollmentsModule,
     NotificationsModule,
     ReviewsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

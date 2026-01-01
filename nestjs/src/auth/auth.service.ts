@@ -9,6 +9,10 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
+import { MailService } from '../mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { randomUUID } from 'crypto';
+import { TokenType } from '@prisma/client';
 
 /**
  * Servicio de autenticación.
@@ -21,6 +25,8 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mailService: MailService,
+    private prisma: PrismaService,
   ) {}
 
   /**
@@ -78,9 +84,158 @@ export class AuthService {
       ...registerDto,
       password: hashedPassword,
     });
+
+    const token = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours to verify
+
+    await this.prisma.token.create({
+      data: {
+        token,
+        type: TokenType.VERIFICATION,
+        expiresAt,
+        userId: user.id,
+      },
+    });
+
+    await this.mailService.sendVerificationEmail(
+      user.email,
+      token,
+      user.name || '',
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;
     return result;
+  }
+
+  async activateAccount(token: string) {
+    const existingToken = await this.prisma.token.findUnique({
+      where: { token },
+    });
+
+    if (!existingToken || existingToken.type !== TokenType.VERIFICATION) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    if (existingToken.expiresAt < new Date()) {
+      await this.prisma.token.delete({ where: { id: existingToken.id } });
+      throw new UnauthorizedException('El token ha expirado');
+    }
+
+    await this.usersService.update(existingToken.userId, { verified: true });
+    await this.prisma.token.delete({ where: { id: existingToken.id } });
+
+    return { message: 'Cuenta activada correctamente' };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Don't reveal user existence
+      return {
+        message:
+          'Si el correo existe, se ha enviado un enlace para restablecer la contraseña.',
+      };
+    }
+
+    const token = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour to reset
+
+    // Delete existing reset tokens
+    const existingTokens = await this.prisma.token.findMany({
+      where: { userId: user.id, type: TokenType.PASSWORD_RESET },
+    });
+    if (existingTokens.length > 0) {
+      await this.prisma.token.deleteMany({
+        where: { userId: user.id, type: TokenType.PASSWORD_RESET },
+      });
+    }
+
+    await this.prisma.token.create({
+      data: {
+        token,
+        type: TokenType.PASSWORD_RESET,
+        expiresAt,
+        userId: user.id,
+      },
+    });
+
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      token,
+      user.name || '',
+    );
+
+    return {
+      message:
+        'Si el correo existe, se ha enviado un enlace para restablecer la contraseña.',
+    };
+  }
+
+  async resendVerification(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('No se encontró cuenta con ese correo');
+    }
+
+    if (user.verified) {
+      throw new ConflictException('La cuenta ya está verificada');
+    }
+
+    // Delete existing verification tokens
+    await this.prisma.token.deleteMany({
+      where: {
+        userId: user.id,
+        type: TokenType.VERIFICATION,
+      },
+    });
+
+    // Create new token
+    const token = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    await this.prisma.token.create({
+      data: {
+        token,
+        type: TokenType.VERIFICATION,
+        expiresAt,
+        userId: user.id,
+      },
+    });
+
+    await this.mailService.sendVerificationEmail(
+      user.email,
+      token,
+      user.name || '',
+    );
+
+    return { message: 'Correo de verificación reenviado' };
+  }
+
+  async resetPassword(token: string, newPass: string) {
+    const existingToken = await this.prisma.token.findUnique({
+      where: { token },
+    });
+
+    if (!existingToken || existingToken.type !== TokenType.PASSWORD_RESET) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    if (existingToken.expiresAt < new Date()) {
+      await this.prisma.token.delete({ where: { id: existingToken.id } });
+      throw new UnauthorizedException('El token ha expirado');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPass, 10);
+    await this.usersService.update(existingToken.userId, {
+      password: hashedPassword,
+    });
+    await this.prisma.token.delete({ where: { id: existingToken.id } });
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   /**

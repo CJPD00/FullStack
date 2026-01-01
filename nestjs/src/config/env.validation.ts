@@ -20,4 +20,9 @@ export const validationSchema: Joi.ObjectSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')
     .default('development'),
+
+  // Email
+  RESEND_API_KEY: Joi.string().required(),
+  EMAIL_FROM: Joi.string().email().default('onboarding@resend.dev'),
+  FRONTEND_URL: Joi.string().uri().required(),
 });
