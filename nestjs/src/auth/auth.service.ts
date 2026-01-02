@@ -14,6 +14,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { TokenType } from '@prisma/client';
 
+interface JwtPayloadWithExp {
+  exp: number;
+  [key: string]: unknown;
+}
+
 /**
  * Servicio de autenticación.
  * @param usersService - Servicio de usuarios.
@@ -28,6 +33,20 @@ export class AuthService {
     private mailService: MailService,
     private prisma: PrismaService,
   ) {}
+
+  /**
+   * Decodifica un JWT y extrae la fecha de expiración de forma segura.
+   * @param token - Token JWT a decodificar.
+   * @returns Fecha de expiración del token.
+   */
+  private decodeTokenExpiration(token: string): Date {
+    const decoded: unknown = this.jwtService.decode(token);
+    if (!decoded || typeof decoded !== 'object' || !('exp' in decoded)) {
+      throw new Error('Invalid token: unable to decode expiration');
+    }
+    const payload = decoded as JwtPayloadWithExp;
+    return new Date(payload.exp * 1000);
+  }
 
   /**
    * Valida el usuario.
@@ -53,14 +72,43 @@ export class AuthService {
    * @param user - Usuario autenticado.
    * @returns Un objeto con el token de acceso y el token de refresco.
    */
-  login(user: Omit<User, 'password'>) {
-    const payload = { email: user.email, sub: user.id, role: user.role };
+  async login(user: Omit<User, 'password'>) {
+    const familyId = randomUUID();
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      familyId,
+    };
+
+    const refresh_token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
+    });
+
+    const access_token = this.jwtService.sign({
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    }); // Access token does not need familyId usually, but can have it if needed. Keeping it simple.
+
+    // Store hash of refresh token
+    const hash = await bcrypt.hash(refresh_token, 10);
+    const expiresAt = this.decodeTokenExpiration(refresh_token);
+
+    await this.prisma.token.create({
+      data: {
+        token: hash,
+        type: TokenType.REFRESH,
+        expiresAt,
+        userId: user.id,
+        familyId,
+      },
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
-      }),
+      access_token,
+      refresh_token,
     };
   }
 
@@ -296,21 +344,91 @@ export class AuthService {
         email: string;
         sub: string;
         role: string;
+        familyId: string;
       }>(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
+
+      // 1. Find all active refresh tokens for this family
+      const tokens = await this.prisma.token.findMany({
+        where: {
+          familyId: payload.familyId,
+          type: TokenType.REFRESH,
+        },
+      });
+
+      // 2. Reuse Detection Logic
+      // We look for the current token in the database
+      let foundParams: { id: string; userId: string } | null = null;
+      for (const t of tokens) {
+        const isMatch = await bcrypt.compare(refreshToken, t.token);
+        if (isMatch) {
+          foundParams = { id: t.id, userId: t.userId };
+          break;
+        }
+      }
+
+      if (!foundParams) {
+        // Token is valid JWT but not in DB -> REUSE DETECTED!
+        // Invalidate the entire family
+        await this.prisma.token.deleteMany({
+          where: { familyId: payload.familyId, type: TokenType.REFRESH },
+        });
+        throw new UnauthorizedException(
+          'Suspected token reuse. Please log in again.',
+        );
+      }
+
+      // 3. Rotation Logic
+      // Token found. Delete it (single use) and issue new pair.
+      await this.prisma.token.delete({ where: { id: foundParams.id } });
 
       const user = await this.usersService.findOne(payload.sub);
       if (!user) {
         throw new UnauthorizedException('Usuario no encontrado');
       }
 
-      // Generar nuevo access token
-      const newPayload = { email: user.email, sub: user.id, role: user.role };
-      return {
-        access_token: this.jwtService.sign(newPayload),
+      // Generate new pair with SAME familyId
+      const newPayload = {
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+        familyId: payload.familyId,
       };
-    } catch {
+
+      const newRefreshToken = this.jwtService.sign(newPayload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
+      });
+
+      const newAccessToken = this.jwtService.sign({
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+      });
+
+      // Save new refresh token
+      const newHash = await bcrypt.hash(newRefreshToken, 10);
+      const expiresAt = this.decodeTokenExpiration(newRefreshToken);
+
+      await this.prisma.token.create({
+        data: {
+          token: newHash,
+          type: TokenType.REFRESH,
+          expiresAt,
+          userId: user.id,
+          familyId: payload.familyId,
+        },
+      });
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Refresh token inválido o expirado');
     }
   }
