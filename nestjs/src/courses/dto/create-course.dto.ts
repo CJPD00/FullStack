@@ -48,4 +48,12 @@ export class CreateCourseDto {
   })
   @IsString()
   instructorId: string;
+
+  @ApiPropertyOptional({
+    description: 'URL of the course image',
+    example: 'https://i.ibb.co/example.jpg',
+  })
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 }

@@ -8,7 +8,11 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImgbbService } from '../common/services/imgbb.service';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -24,14 +28,25 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 @ApiTags('courses')
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(
+    private readonly coursesService: CoursesService,
+    private readonly imgbbService: ImgbbService,
+  ) {}
 
   @Post()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new course' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  create(@Body() createCourseDto: CreateCourseDto) {
+  @UseInterceptors(FileInterceptor('image'))
+  async create(
+    @Body() createCourseDto: CreateCourseDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (file) {
+      const imageUrl = await this.imgbbService.uploadImage(file);
+      createCourseDto.imageUrl = imageUrl;
+    }
     return this.coursesService.create(createCourseDto);
   }
 
@@ -52,11 +67,17 @@ export class CoursesController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR, Role.ADMIN)
-  update(
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
     @Param('id') id: string,
     @Body() updateCourseDto: UpdateCourseDto,
     @CurrentUser() user: User,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (file) {
+      const imageUrl = await this.imgbbService.uploadImage(file);
+      updateCourseDto.imageUrl = imageUrl;
+    }
     return this.coursesService.update(id, updateCourseDto, user.id, user.role);
   }
 

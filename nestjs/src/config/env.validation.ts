@@ -25,4 +25,5 @@ export const validationSchema: Joi.ObjectSchema = Joi.object({
   RESEND_API_KEY: Joi.string().required(),
   EMAIL_FROM: Joi.string().email().default('onboarding@resend.dev'),
   FRONTEND_URL: Joi.string().uri().required(),
+  IMGBB_API_KEY: Joi.string().required(),
 });
