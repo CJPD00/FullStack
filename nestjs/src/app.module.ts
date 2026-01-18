@@ -14,6 +14,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { MailModule } from './mail/mail.module';
 import { validationSchema } from './config/env.validation';
+import { RedisCacheModule } from './shared/redis/redis.module';
 
 /**
  * Módulo principal de la aplicación.
@@ -45,6 +46,7 @@ import { validationSchema } from './config/env.validation';
     NotificationsModule,
     ReviewsModule,
     MailModule,
+    RedisCacheModule,
   ],
   controllers: [AppController],
   providers: [

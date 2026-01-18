@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImgbbService } from '../common/services/imgbb.service';
 import { CoursesService } from './courses.service';
@@ -51,12 +52,16 @@ export class CoursesController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60 * 1000) // 1 minute
   @ApiOperation({ summary: 'Get all courses' })
   findAll(@Query() paginationDto: PaginationDto) {
     return this.coursesService.findAll(paginationDto);
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60 * 1000) // 1 minute
   @ApiOperation({ summary: 'Get a course by id' })
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);

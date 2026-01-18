@@ -26,4 +26,9 @@ export const validationSchema: Joi.ObjectSchema = Joi.object({
   EMAIL_FROM: Joi.string().email().default('onboarding@resend.dev'),
   FRONTEND_URL: Joi.string().uri().required(),
   IMGBB_API_KEY: Joi.string().required(),
+
+  // Redis
+  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_PORT: Joi.number().default(6379),
+  REDIS_TTL: Joi.number().default(5000),
 });
